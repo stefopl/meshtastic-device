@@ -54,4 +54,4 @@ jobs:
           body: |
             This PR adds firmware binaries for a virtual Meshtastic device (AMD64).
           title: '[Virtual Meshtastic Device] Add firmware binaries (AMD64)'
-          branch: virtual_meshtastic_device
+          branch: meshtastic_device
