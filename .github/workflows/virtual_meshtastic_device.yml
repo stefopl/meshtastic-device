@@ -29,7 +29,7 @@ jobs:
           mkdir -p /tmp/rev
           for tag in $TAGS; do
             DOWNLOAD_URL="https://github.com/meshtastic/firmware/archive/$tag.zip"
-            FILENAME="meshtastic-firmware-$tag.zip"
+            FILENAME="/tmp/revzips/meshtastic-firmware-$tag.zip"
             wget -q "$DOWNLOAD_URL" -O "$FILENAME"
             unzip -qq "$FILENAME" -d "/tmp/revzips/$tag"
             chmod +x "/tmp/revzips/$tag/firmware-$(echo $tag | sed 's/^v//')/bin/build-native.sh"
