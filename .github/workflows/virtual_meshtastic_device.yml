@@ -1,0 +1,57 @@
+name: Build and Deploy Virtual Device for Meshtastic Firmware (AMD64)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install wget g++ zip ca-certificates cmake libyaml-cpp-dev libgpiod-dev libbluetooth-dev
+          pip install --upgrade pip
+          pip install platformio
+
+      - name: Compile firmware for latest revisions
+        run: |
+          TAGS=$(curl -s "https://api.github.com/repos/meshtastic/firmware/tags" | jq -r '.[0:1] | .[].name')
+          mkdir -p /tmp/revzips
+          mkdir -p /tmp/rev
+          for tag in $TAGS; do
+            DOWNLOAD_URL="https://github.com/meshtastic/firmware/archive/$tag.zip"
+            FILENAME="meshtastic-firmware-$tag.zip"
+            wget -q "$DOWNLOAD_URL" -O "$FILENAME"
+            unzip -qq "$FILENAME" -d "/tmp/revzips/$tag"
+            chmod +x "/tmp/revzips/$tag/firmware-$(echo $tag | sed 's/^v//')/bin/build-native.sh"
+            cd "/tmp/revzips/$tag/firmware-$(echo $tag | sed 's/^v//')"
+            ./bin/build-native.sh
+            cp "release/meshtasticd_linux_x86_64" "/tmp/rev/meshtasticd_linux_x86_64_$tag"
+          done
+
+      - name: Display directory structure
+        run: |
+          cd $GITHUB_WORKSPACE
+          tree /tmp/rev
+          mkdir -p virtual_meshtastic_device
+          cp -r /tmp/rev/. virtual_meshtastic_device/
+          rm -r /tmp/rev
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: Add Virtual Meshtastic Device firmware binaries (AMD64)
+          committer: GitHub <noreply@github.com>
+          body: |
+            This PR adds firmware binaries for a virtual Meshtastic device (AMD64).
+          title: '[Virtual Meshtastic Device] Add firmware binaries (AMD64)'
+          branch: virtual_meshtastic_device
