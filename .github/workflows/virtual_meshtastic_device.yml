@@ -24,7 +24,7 @@ jobs:
 
       - name: Compile firmware for latest revisions
         run: |
-          TAGS=$(curl -s "https://api.github.com/repos/meshtastic/firmware/tags" | jq -r '.[0:1] | .[].name')
+          TAGS=$(curl -s "https://api.github.com/repos/meshtastic/firmware/tags" | jq -r '.[0:10] | .[].name')
           mkdir -p /tmp/revzips
           mkdir -p /tmp/rev
           for tag in $TAGS; do
